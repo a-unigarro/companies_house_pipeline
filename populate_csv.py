@@ -2,9 +2,9 @@ import os
 from sqlalchemy import create_engine, Date, Integer, String, text
 import pandas as pd
 import csv
-from models import Company
+from models import CompanyCSV
 from database import engine
-
+import httpx ### library for communicating with webpages
 ### for testing purposes ###
 from itertools import islice
 
@@ -12,17 +12,17 @@ from itertools import islice
     
 
 csv_mapping = {
-    "CompanyName": Company.company_name.key,
-    "CompanyNumber": Company.company_number.key,
-    "CompanyCategory": Company.company_category.key,
-    "CompanyStatus": Company.company_status.key,
-    "CountryOfOrigin": Company.country_of_origin.key,
-    "IncorporationDate": Company.incorporation_date.key,
-    "SICCode.SicText_1": Company.sic_code.key,
-    "Mortgages.NumMortCharges": Company.no_mortgages.key,
-    "Mortgages.NumMortOutstanding": Company.mortgages_outstanding.key,
-    "Mortgages.NumMortPartSatisfied": Company.mortgages_part_satisfied.key,
-    "Mortgages.NumMortSatisfied": Company.mortgages_satisfied.key,
+    "CompanyName": CompanyCSV.company_name.key,
+    "CompanyNumber": CompanyCSV.company_number.key,
+    "CompanyCategory": CompanyCSV.company_category.key,
+    "CompanyStatus": CompanyCSV.company_status.key,
+    "CountryOfOrigin": CompanyCSV.country_of_origin.key,
+    "IncorporationDate": CompanyCSV.incorporation_date.key,
+    "SICCode.SicText_1": CompanyCSV.sic_code.key,
+    "Mortgages.NumMortCharges": CompanyCSV.no_mortgages.key,
+    "Mortgages.NumMortOutstanding": CompanyCSV.mortgages_outstanding.key,
+    "Mortgages.NumMortPartSatisfied": CompanyCSV.mortgages_part_satisfied.key,
+    "Mortgages.NumMortSatisfied": CompanyCSV.mortgages_satisfied.key,
 }
 
 filled_cols = list(csv_mapping.values())
@@ -67,21 +67,22 @@ def transform_dtype_chunk(df, model_columns):
 df_iter = pd.read_csv(
     './data/BasicCompanyDataAsOneFile-2026-03-02.zip',
     compression='zip', 
-    chunksize=100000,
+    chunksize=400,
     low_memory=False )
 
 
-Company.__table__.drop(bind=engine, checkfirst=True)
+CompanyCSV.__table__.drop(bind=engine, checkfirst=True)
 print("Table deleted") 
-Company.__table__.create(bind=engine, checkfirst=True) 
+CompanyCSV.__table__.create(bind=engine, checkfirst=True) 
 print("Table schema verified/created via SQLAlchemy Model")
 
-for i, df_chunk in enumerate(df_iter):
-    df_chunk_clean=transform_dtype_chunk(df_chunk, Company.__table__.columns)
+#for i, df_chunk in enumerate(df_iter):
+for i, df_chunk in enumerate(islice(df_iter,1)):
+    df_chunk_clean=transform_dtype_chunk(df_chunk, CompanyCSV.__table__.columns)
     df_chunk_clean = df_chunk_clean[filled_cols]
 
     df_chunk_clean.to_sql(
-        name="companies",
+        name=CompanyCSV.__tablename__,
         con=engine,
         if_exists="append",
         index=False

@@ -5,8 +5,8 @@ from typing import Optional
 from datetime import date
 from database import Base
 
-class Company(Base):
-    __tablename__ = "companies"
+class CompanyCSV(Base):
+    __tablename__ = "companies_csv"
     
     #Identifiers
     company_number: Mapped[str] = mapped_column(String(20), primary_key=True)
@@ -28,6 +28,21 @@ class Company(Base):
     mortgages_part_satisfied: Mapped[int] = mapped_column(Integer, default=0)
     mortgages_satisfied: Mapped[int] = mapped_column(Integer, default=0)
     
+class CompanyAPI(Base):
+    __tablename__ = "companies_api"
     
-    # This remains as the placeholder for nested API data
-    api_data: Mapped[dict] = mapped_column(JSONB, nullable=True)
+    # Primary Key to link both tables
+    company_number: Mapped[str] = mapped_column(String(20), primary_key=True)
+    
+    # Standardized fields from API to compare easily with CSV
+    api_company_status: Mapped[Optional[str]] = mapped_column(String(50))
+
+    profile_data: Mapped[dict] = mapped_column(JSONB, nullable=True)
+
+
+    
+    ## The "Big Data" containers
+    ## JSONB allows us to store the full response (for Address History & Officers)
+    #profile_data: Mapped[dict] = mapped_column(JSONB, nullable=True) 
+    #officers_data: Mapped[dict] = mapped_column(JSONB, nullable=True)
+    #filing_history: Mapped[dict] = mapped_column(JSONB, nullable=True)

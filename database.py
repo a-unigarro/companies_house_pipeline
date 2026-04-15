@@ -28,9 +28,9 @@ class Base(DeclarativeBase):
 
 ############## FOR LATER ########################
 ## This is what we will use in our FastAPI routes to talk to the DB
-#SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 #
-##Helper for FastAPI
+##Helper for FastAPI --> Dependency injection
 #def get_db():
 #    db = SessionLocal()
 #    try:
