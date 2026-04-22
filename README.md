@@ -1,7 +1,3 @@
-# Companies House Data Pipeline
-
-Pipeline designed to ingest, enrich, and analyze UK Companies House data. This project handle bulk datasets stored in csv files while synchronizing with live REST APIs to detect data drift.
-
 ## Project Overview
 The pipeline implements an ELT (Extract, Load, Transform) pattern to manage company records. It handles the transition from static historical snapshots (CSV) to live operational data (JSON), storing everything in a PostgreSQL database for advanced analysis.
 
@@ -22,4 +18,4 @@ Database:*PostgreSQL
 Libraries:*SQLAlchemy (ORM), Pandas (Data Processing), HTTPX (API Communication), Dotenv
 Development:*Decoupled architecture for easy testing and scaling.
 
-## Databases
+### This project is still under development. ####
