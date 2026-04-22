@@ -19,15 +19,16 @@ class  APIIngestor:
           if not self.api_key:
               raise ValueError("DB_API_KEY not found in .env file")
           self.base_url = "https://api.company-information.service.gov.uk/company/"
+          
     
   def setup_table(self):
-          """Wipes and recreates the API table."""
+          ###Wipes and recreates the API table.
           print("Refreshing API table schema...")
           CompanyAPI.__table__.drop(bind=engine, checkfirst=True)
           CompanyAPI.__table__.create(bind=engine, checkfirst=True)
 
   def get_company_numbers_from_db(self, limit=None):
-          """Fetches company numbers already stored in the CSV table."""
+          ####Fetches company numbers already stored in the CSV table.
           with SessionLocal() as session:
               query = session.query(CompanyCSV.company_number)
               if limit:
@@ -36,10 +37,11 @@ class  APIIngestor:
               return [row.company_number for row in results]
 
   def fetch_and_insert(self, company_numbers):
-          """Iterates through company numbers, fetches from API, and saves to DB."""
+          ###Iterates through company numbers, fetches from API, and saves to DB.
           with SessionLocal() as session:
               for company_number in company_numbers:
                   url = f"{self.base_url}{company_number}"
+                  url_fh = f"{self.base_url}{company_number}/filing-history"                 
                   
                   try:
                       # Authentication in Companies House API is the key as the username, empty password
@@ -47,21 +49,24 @@ class  APIIngestor:
                       
                       if response.status_code == 200:
                           data_full = response.json()
-                          
+                          time.sleep(0.6)
+                          response_fh = httpx.get(url_fh, auth=(self.api_key, ""), timeout=10.0)
+                          data_fh = response_fh.json()
+
                           new_entry = CompanyAPI(
-                              company_number=company_number,
-                              # Using .get() with a fallback 'unknown' as we discussed for Charities
+                              company_number=company_number,                              
                               api_company_status=data_full.get("company_status"),
-                              profile_data=data_full
+                              profile_data=data_full,
+                              filing_history=data_fh
                           )
                           
                           session.merge(new_entry)
                           session.commit()
-                          #print(f"Ingested: {company_number}")
+
                       
                       elif response.status_code != 200:
                         print(f"The status code is {response.status_code}")
-                                  # --- FALTA ESTA PARTE ---
+
                   except Exception as e:
                       print(f"Error fetching company {company_number}: {e}")
                       session.rollback() 
@@ -70,8 +75,8 @@ class  APIIngestor:
           """Orchestrates the API ingestion process."""
           start_time = time.time()
           
-          # For your test dataset approach, we setup the table first
-#          self.setup_table()
+          # We setup the table first
+          self.setup_table()
           
           # Get the numbers we need to look up
           company_list = self.get_company_numbers_from_db(limit=limit)

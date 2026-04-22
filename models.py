@@ -38,6 +38,7 @@ class CompanyAPI(Base):
     api_company_status: Mapped[Optional[str]] = mapped_column(String(50))
 
     profile_data: Mapped[dict] = mapped_column(JSONB, nullable=True)
+    filing_history: Mapped[dict] = mapped_column(JSONB, nullable=True)
 
 
     

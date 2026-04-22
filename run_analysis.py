@@ -16,7 +16,7 @@ def run_reconciliation_pipeline(sql_file, output_csv, output_dir):
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
 
-    # 1. Read and Execute the SQL (One time only)
+    # Read and Execute the SQL 
     with open(sql_file, 'r') as f:
         query = f.read()
     
@@ -33,7 +33,7 @@ def run_reconciliation_pipeline(sql_file, output_csv, output_dir):
     mismatches_df = df[~is_match]
 
 
-    # 3. Calculate Stats
+    # Calculate Stats
     total_processed = len(df)
     total_matches = len(matches_df)
     total_mismatches = len(mismatches_df)
@@ -42,7 +42,7 @@ def run_reconciliation_pipeline(sql_file, output_csv, output_dir):
     output_path = os.path.join(OUTPUT_DIR, output_csv)
     mismatches_df.to_csv(output_path, sep=';', index=False)
 
-    # 5. Print the Combined Report
+    # Print the Combined Report
     print("\n" + "="*50)
     print("      DATA RECONCILIATION SUMMARY REPORT")
     print("="*50)
@@ -65,11 +65,10 @@ def run_reconciliation_pipeline(sql_file, output_csv, output_dir):
         print(f" CSV: {row['status_csv']} -> API: {row['status_api']} | Count: {row['count']}")
     
 
-'''
+
 if __name__ == "__main__":
     run_reconciliation_pipeline(
         sql_file="sql/status_comparison.sql", 
         output_csv="status_discrepancy_report.csv",
         output_dir="output"
     )
-'''

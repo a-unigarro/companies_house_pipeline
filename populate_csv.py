@@ -15,7 +15,7 @@ class  CSVIngestor:
         
         self.file_path=file_path
         self.chunk_size=chunk_size
-
+        ##### This columns have a 100% filling rate
         self.csv_mapping = {
         "CompanyName": CompanyCSV.company_name.key,
         "CompanyNumber": CompanyCSV.company_number.key,
