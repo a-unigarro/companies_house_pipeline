@@ -55,7 +55,7 @@ class  APIIngestor:
 
                           new_entry = CompanyAPI(
                               company_number=company_number,                              
-                              api_company_status=data_full.get("company_status"),
+                              company_status=data_full.get("company_status"),
                               profile_data=data_full,
                               filing_history=data_fh
                           )

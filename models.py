@@ -35,7 +35,7 @@ class CompanyAPI(Base):
     company_number: Mapped[str] = mapped_column(String(20), primary_key=True)
     
     # Standardized fields from API to compare easily with CSV
-    api_company_status: Mapped[Optional[str]] = mapped_column(String(50))
+    company_status: Mapped[Optional[str]] = mapped_column(String(50))
 
     profile_data: Mapped[dict] = mapped_column(JSONB, nullable=True)
     filing_history: Mapped[dict] = mapped_column(JSONB, nullable=True)
