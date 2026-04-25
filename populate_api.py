@@ -35,6 +35,21 @@ class  APIIngestor:
                   query = query.limit(limit)
               results = query.all()
               return [row.company_number for row in results]
+          
+
+  def filter_filing_history(self, raw_data):
+        if not raw_data or "items" not in raw_data:
+            return {"items": []}
+        keep_categories = {'change-of-name', 'address'}
+        filtered_items = []
+        for item in raw_data["items"]:
+            category = item.get("category")
+            # Save only specified categories
+            if category in keep_categories:
+                filtered_items.append(item)
+        return {"items": filtered_items}
+
+
 
   def fetch_and_insert(self, company_numbers):
           ###Iterates through company numbers, fetches from API, and saves to DB.
@@ -52,6 +67,7 @@ class  APIIngestor:
                           time.sleep(0.6)
                           response_fh = httpx.get(url_fh, auth=(self.api_key, ""), timeout=10.0)
                           data_fh = response_fh.json()
+                          data_fh = self.filter_filing_history(data_fh)
 
                           new_entry = CompanyAPI(
                               company_number=company_number,                              
