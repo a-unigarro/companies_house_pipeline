@@ -87,12 +87,13 @@ class  APIIngestor:
                       print(f"Error fetching company {company_number}: {e}")
                       session.rollback() 
 
-  def run_data_ingestion(self, limit=None):
+  def run_data_ingestion(self, limit=None, replace_table=False):
           """Orchestrates the API ingestion process."""
           start_time = time.time()
           
-          # We setup the table first
-          self.setup_table()
+          if replace_table: 
+            # We setup the table first
+            self.setup_table()
           
           # Get the numbers we need to look up
           company_list = self.get_company_numbers_from_db(limit=limit)

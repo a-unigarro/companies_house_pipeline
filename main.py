@@ -5,7 +5,9 @@ import os
 
 def main():
     # --- Configuration ---
-    CSV_FILE_PATH = './data/BasicCompanyDataAsOneFile-2026-03-02.zip'
+    DATA_DIR = "data"
+    FILE_DATE = "2026-05-01" 
+
     SQL_ANALYSIS_STATUS = 'sql/status_comparison.sql'
     SQL_ANALYSIS_SIC = 'sql/sic_comparison.sql'
     SQL_ANALYSIS_NAME = 'sql/name_comparison.sql'
@@ -18,7 +20,8 @@ def main():
 
     #Ingest CSV
     print("\n Ingesting CSV ---")
-    csv_loader = CSVIngestor(CSV_FILE_PATH, chunk_size=400)
+    csv_loader = CSVIngestor(data_dir=DATA_DIR, file_date=FILE_DATE, chunk_size=400)
+    csv_loader.download_data()
     csv_loader.setup_table() # Clean start
     csv_loader.run_data_ingestion(limit_chunks=CSV_LIMIT)
     csv_loader.db_size()
@@ -26,7 +29,7 @@ def main():
     #Update from API
     print("\n Updating from API ---")
     api_loader = APIIngestor()
-    api_loader.run_data_ingestion()
+    api_loader.run_data_ingestion(replace_table=True)
 
     #Run Analysis
     print("\n Running Reconciliation Analysis ---")

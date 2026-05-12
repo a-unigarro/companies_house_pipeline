@@ -11,9 +11,15 @@ from monty.functools import lazy_property
 
     
 class  CSVIngestor:
-    def __init__(self, file_path, chunk_size):
+    def __init__(self, data_dir, file_date, chunk_size):
         
-        self.file_path=file_path
+        self.data_dir=data_dir
+        self.file_date=file_date
+        self.file_name=f"BasicCompanyDataAsOneFile-{self.file_date}.zip"
+        self.file_path = f"./{self.data_dir}/{self.file_name}"
+        self.base_url = f"https://download.companieshouse.gov.uk"
+
+
         self.chunk_size=chunk_size
         ##### This columns have a 100% filling rate
         self.csv_mapping = {
@@ -30,6 +36,26 @@ class  CSVIngestor:
         "Mortgages.NumMortSatisfied": CompanyCSV.mortgages_satisfied.key,
         }
         self.filled_cols = list(self.csv_mapping.values())
+
+    def download_data(self):
+            
+        ###Create directory if it doesn't exist###
+        if not os.path.exists(self.data_dir):
+            os.makedirs(self.data_dir)
+        ####Downloads the zip file if it doesn't already exist###
+        if os.path.exists(self.file_path):
+            print(f"File already exists at {self.file_path}. Skipping download.")
+            return
+
+        print(f"Downloading data from {self.base_url}/{self.file_name}")
+        with httpx.stream("GET", f"{self.base_url}/{self.file_name}", follow_redirects=True) as response:
+            if response.status_code != 200:
+                raise Exception(f"Failed to download file. Status code: {response.status_code}")
+            
+            with open(self.file_path, "wb") as f:
+                for chunk in response.iter_bytes(chunk_size=8192):
+                    f.write(chunk)
+        print(f"Download complete: {self.file_path}")
 
     def setup_table(self):
         """Drops and recreates the table schema."""
@@ -70,6 +96,7 @@ class  CSVIngestor:
 
     def run_data_ingestion(self,limit_chunks=None):
 
+
         df_iter = pd.read_csv(
             self.file_path,
             compression='zip', 
@@ -103,7 +130,8 @@ class  CSVIngestor:
 
 if __name__ == "__main__":
     # Now running the script is clean and descriptive
-    ingestor = CSVIngestor('./data/BasicCompanyDataAsOneFile-2026-03-02.zip',400)
+    ingestor = CSVIngestor(data_dir="data", file_date="2026-05-01",chunk_size=400)
+    ingestor.download_data()
     ingestor.setup_table()
     ingestor.run_data_ingestion(limit_chunks=1) # Remove limit_chunks for full run
     ingestor.db_size()
