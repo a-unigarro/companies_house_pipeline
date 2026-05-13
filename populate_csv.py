@@ -7,7 +7,6 @@ from database import engine
 import httpx ### library for communicating with webpages
 ### for testing purposes ###
 from itertools import islice
-from monty.functools import lazy_property
 
     
 class  CSVIngestor:

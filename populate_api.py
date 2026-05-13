@@ -94,6 +94,9 @@ class  APIIngestor:
           if replace_table: 
             # We setup the table first
             self.setup_table()
+          else:
+        # Create the table if it doesn't exist yet.
+            CompanyAPI.__table__.create(bind=engine, checkfirst=True)  
           
           # Get the numbers we need to look up
           company_list = self.get_company_numbers_from_db(limit=limit)
