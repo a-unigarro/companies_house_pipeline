@@ -1,5 +1,6 @@
 import os
 from sqlalchemy import create_engine, Date, Integer, String, text
+from sqlalchemy.dialects.postgresql import insert
 import pandas as pd
 import csv
 from models import CompanyCSV
@@ -56,11 +57,16 @@ class  CSVIngestor:
                     f.write(chunk)
         print(f"Download complete: {self.file_path}")
 
-    def setup_table(self):
-        """Drops and recreates the table schema."""
-        CompanyCSV.__table__.drop(bind=engine, checkfirst=True)
-        CompanyCSV.__table__.create(bind=engine, checkfirst=True)
-        print("Table schema recreated.")
+    def setup_table(self, force_refresh=False):
+        ####Creates the table if it doesn't exist. Drop it if force_refresh is True ###
+        
+        with engine.begin() as conn:
+            if force_refresh:
+                print("Dropping and recreating CSV table...")
+                CompanyCSV.__table__.drop(conn, checkfirst=True)
+            
+            CompanyCSV.__table__.create(conn, checkfirst=True)
+            print("Table verified/created.")
 
     
     def transform_dtype_chunk(self, df):
@@ -109,13 +115,33 @@ class  CSVIngestor:
             clean_chunk=self.transform_dtype_chunk(df_chunk)
             clean_chunk = clean_chunk[self.filled_cols]
 
-            clean_chunk.to_sql(
-                name=CompanyCSV.__tablename__,
-                con=engine,
-                if_exists="append",
-                index=False
-            )
+        # Convert chunk to list of dictionaries for SQLAlchemy
+            data_dicts = clean_chunk.to_dict(orient='records')
 
+            if not data_dicts:
+                continue
+
+            with engine.begin() as conn:
+                # Create the base insert statement
+                stmt = insert(CompanyCSV).values(data_dicts)
+                
+                # Define what happens on conflict (Update these columns)
+                upsert_stmt = stmt.on_conflict_do_update(
+                    index_elements=['company_number'], 
+                    set_={
+                    "company_name": stmt.excluded.company_name,
+                    "company_status": stmt.excluded.company_status,
+                    "company_category": stmt.excluded.company_category,
+                    "country_of_origin": stmt.excluded.country_of_origin, # Added
+                    "incorporation_date": stmt.excluded.incorporation_date, # Added
+                    "sic_code": stmt.excluded.sic_code,
+                    "no_mortgages": stmt.excluded.no_mortgages,
+                    "mortgages_outstanding": stmt.excluded.mortgages_outstanding,
+                    "mortgages_part_satisfied": stmt.excluded.mortgages_part_satisfied,
+                    "mortgages_satisfied": stmt.excluded.mortgages_satisfied,
+                }
+                )
+                conn.execute(upsert_stmt)
             print(f"Inserted {len(clean_chunk)} rows.")
 
 

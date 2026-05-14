@@ -21,11 +21,15 @@ class  APIIngestor:
           self.base_url = "https://api.company-information.service.gov.uk/company/"
           
     
-  def setup_table(self):
-          ###Wipes and recreates the API table.
-          print("Refreshing API table schema...")
-          CompanyAPI.__table__.drop(bind=engine, checkfirst=True)
-          CompanyAPI.__table__.create(bind=engine, checkfirst=True)
+  def setup_table(self, force_refresh=False): 
+        ####Creates the table if it doesn't exist. Drop it if force_refresh is True ###
+        with engine.begin() as conn:
+            if force_refresh:
+                print("Dropping and recreating API table...")
+                CompanyAPI.__table__.drop(conn, checkfirst=True)      
+            
+            CompanyAPI.__table__.create(conn, checkfirst=True)
+            print("Table verified/created.")
 
   def get_company_numbers_from_db(self, limit=None):
           ####Fetches company numbers already stored in the CSV table.
@@ -88,16 +92,9 @@ class  APIIngestor:
                       session.rollback() 
 
   def run_data_ingestion(self, limit=None, replace_table=False):
-          """Orchestrates the API ingestion process."""
+          ###Orchestrates the API ingestion process.
           start_time = time.time()
-          
-          if replace_table: 
-            # We setup the table first
-            self.setup_table()
-          else:
-        # Create the table if it doesn't exist yet.
-            CompanyAPI.__table__.create(bind=engine, checkfirst=True)  
-          
+
           # Get the numbers we need to look up
           company_list = self.get_company_numbers_from_db(limit=limit)
           print(f"Starting ingestion for {len(company_list)} companies...")

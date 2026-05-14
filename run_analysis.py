@@ -5,19 +5,30 @@ import time
 import os 
 
 
+def get_and_prep_output_dir(provided_dir=None):
+    
+    ##### Determines the correct output directory based on the environment 
+    #####ensures that the directory exists on disk.
+    
+    ##Detect Docker environment
+    if os.environ.get("IS_DOCKER") == "true":
+        output_dir = "output_docker"
+    else:
+        output_dir = provided_dir if provided_dir is not None else "output"
+
+    ##Automatically create the directory if missing
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        
+    return output_dir
+
+
 def run_reconciliation_status(sql_file, output_dir=None):
 
     start_time = time.time()
 
-    if output_dir is None:
-        output_dir="output"
-    
-    # Define the output directory
-    OUTPUT_DIR = output_dir
-
-    # Ensure the directory exists
-    if not os.path.exists(OUTPUT_DIR):
-        os.makedirs(OUTPUT_DIR)
+        # Call the helper function
+    OUTPUT_DIR = get_and_prep_output_dir(output_dir)
 
     # Read and Execute the SQL 
     with open(sql_file, 'r') as f:
@@ -72,18 +83,10 @@ def run_reconciliation_status(sql_file, output_dir=None):
 
 def run_reconciliation_sic(sql_file, output_dir=None):
 
-    if output_dir is None:
-        output_dir="output"
-    
-
     start_time = time.time()
-    
-    # Define the output directory
-    OUTPUT_DIR = output_dir
 
-    # Ensure the directory exists
-    if not os.path.exists(OUTPUT_DIR):
-        os.makedirs(OUTPUT_DIR)
+    # Call the helper function
+    OUTPUT_DIR = get_and_prep_output_dir(output_dir)
 
     # Read and Execute the SQL 
     with open(sql_file, 'r') as f:
@@ -159,14 +162,10 @@ def run_reconciliation_sic(sql_file, output_dir=None):
 
 def run_reconciliation_name(sql_file, output_dir=None):
 
-    if output_dir is None:
-        output_dir="output"
-    
-
     start_time = time.time()
-    
-    # Define the output directory
-    OUTPUT_DIR = output_dir
+
+    # Call the helper function
+    OUTPUT_DIR = get_and_prep_output_dir(output_dir)
 
     # Ensure the directory exists
     if not os.path.exists(OUTPUT_DIR):

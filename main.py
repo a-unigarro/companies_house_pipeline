@@ -22,13 +22,14 @@ def main():
     print("\n Ingesting CSV ---")
     csv_loader = CSVIngestor(data_dir=DATA_DIR, file_date=FILE_DATE, chunk_size=400)
     csv_loader.download_data()
-    csv_loader.setup_table() # Clean start
+    csv_loader.setup_table(force_refresh=False) # Clean start
     csv_loader.run_data_ingestion(limit_chunks=CSV_LIMIT)
     csv_loader.db_size()
 
     #Update from API
     print("\n Updating from API ---")
     api_loader = APIIngestor()
+    api_loader.setup_table(force_refresh=False)
     api_loader.run_data_ingestion(replace_table=True)
 
     #Run Analysis
