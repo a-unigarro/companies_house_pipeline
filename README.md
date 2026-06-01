@@ -28,20 +28,25 @@ The pipeline implements an ELT (Extract, Load, Transform) pattern to manage comp
 ### 1. Environment & Airflow Initialization
 Before building the containers, you must prepare the host environment permissions and create the required Airflow directories (as specified in the Airflow documentation). In your Linux/WSL terminal, run the following official initialization steps:
 
---> In bash
 #### Create necessary mounting directories for Airflow
+```bash
 mkdir -p ./logs ./plugins ./output_airflow
+```
 
 #### Initialize the .env file with your local host UID and GID mapping
-echo "AIRFLOW_UID=$(id -u)" > .env
+```bash
+echo "AIRFLOW_UID=\$(id -u)" > .env
 echo "AIRFLOW_GID=0" >> .env
+```
 
 ### 2. Environment Configuration
-The pipeline requires an API key and database credentials. Locate (or create) the .env file in the root directory. Fill in your Companies House API Key and preferred database credentials, template below and in .env.example:
+The pipeline requires an API key and database credentials. Locate (or create) the `.env` file in the root directory. Fill in your Companies House API Key and preferred database credentials, template below and in `.env.example`:
 
+```env
 #### From step 1
 AIRFLOW_UID=1000
 AIRFLOW_GID=0
+
 #### Business Database Configuration 
 DB_USER=your_secure_db_user
 DB_PASSWORD=your_secure_db_password
@@ -49,11 +54,14 @@ DB_NAME=companies_data_db
 DB_HOST=localhost
 DB_PORT=5432
 AIRFLOW_DB_NAME=airflow_metadata_db
+
 #### Companies House API Configuration 
 DB_API_KEY=your_actual_companies_house_api_key
+
 #### Airflow Web UI Admin User Configuration 
 _AIRFLOW_WWW_USER_USERNAME=admin
 _AIRFLOW_WWW_USER_PASSWORD=admin_secure_password
+```
 
 
 ### 3. Running with Docker (Recommended)
