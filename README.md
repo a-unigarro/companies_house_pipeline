@@ -66,14 +66,14 @@ _AIRFLOW_WWW_USER_PASSWORD=admin_secure_password
 
 ### 3. Running with Docker (Recommended)
 The project is fully containerized. Docker Compose handles the database, GUI, and the Python environment automatically. To build and start all services (in the background), run:
-
+```bash
 docker-compose up --build -d
-
+```
 #### Running the Pipeline Manually (Without Airflow)
 Because the standalone pipeline service is explicitly isolated under a Docker profile, it will remain idle and will not execute automatically alongside Airflow. If you want to bypass the scheduler and trigger the data tasks manually inside a standalone container, execute the following command:
-
+```bash
 docker-compose run --rm pipeline
-
+```
 
 
 
