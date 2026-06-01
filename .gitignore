@@ -1,7 +1,33 @@
+#### Virtual Environments and Hidden Variables ####
 .env
+.venv/
+env/
+venv/
+de_envs/
+
+#### Python Cache ####
 __pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+
+#### Binary Formats and Documents ####
 *.zip
 *.png
 *.jpg
+*.jpeg
 *.pdf
-*.csv
+
+#### Local Data and Generated Reports ####
+data/
+output/
+output_docker/
+output_airflow/
+
+#### Docker Data Persistence ####
+postgres_data/
+pgadmin_data/
+
+#### Airflow Runtime Logs ####
+logs/

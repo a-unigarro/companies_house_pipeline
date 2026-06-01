@@ -1,7 +1,13 @@
+import os
 from populate_csv import CSVIngestor
 from populate_api import APIIngestor
-from run_analysis import run_reconciliation_status, run_reconciliation_sic, run_reconciliation_name
-import os
+from run_analysis import (
+    get_and_prep_output_dir,
+    run_reconciliation_name,
+    run_reconciliation_sic,
+    run_reconciliation_status,
+)
+
 
 def main():
     # --- Configuration ---
@@ -30,10 +36,11 @@ def main():
     print("\n Updating from API ---")
     api_loader = APIIngestor()
     api_loader.setup_table(force_refresh=False)
-    api_loader.run_data_ingestion(replace_table=True)
+    api_loader.run_data_ingestion()
 
     #Run Analysis
     print("\n Running Reconciliation Analysis ---")
+
     run_reconciliation_status(
         sql_file=SQL_ANALYSIS_STATUS
     )
@@ -43,7 +50,7 @@ def main():
     run_reconciliation_name(
         sql_file=SQL_ANALYSIS_NAME
     )
-    print("\n Pipeline Complete! Check the 'output' folder for results.")
+    print(f"\n Pipeline Complete! Check the 'output' folders for results.")
 
 if __name__ == "__main__":
     main()

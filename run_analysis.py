@@ -6,20 +6,11 @@ import os
 
 
 def get_and_prep_output_dir(provided_dir=None):
-    
-    ##### Determines the correct output directory based on the environment 
-    #####ensures that the directory exists on disk.
-    
-    ##Detect Docker environment
-    if os.environ.get("IS_DOCKER") == "true":
-        output_dir = "output_docker"
-    else:
-        output_dir = provided_dir if provided_dir is not None else "output"
 
-    ##Automatically create the directory if missing
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-        
+    output_dir = provided_dir if provided_dir is not None else "output"
+
+    os.makedirs(output_dir, exist_ok=True)
+
     return output_dir
 
 
@@ -35,7 +26,7 @@ def run_reconciliation_status(sql_file, output_dir=None):
         query = f.read()
     
     with engine.connect() as conn:
-        # This df contains columns: sic_csv, status_api
+        # This df contains columns: status_csv, status_api
         df = pd.read_sql(text(query), conn)
 
     if df.empty:
@@ -71,7 +62,7 @@ def run_reconciliation_status(sql_file, output_dir=None):
     for _, row in matches_summary.head(10).iterrows():
         print(f" CSV: {row['status_csv']} -> API: {row['status_api']} | Count: {row['count']}")
 
-    print("\n--- Top Discrepancies (Saved to CSV) ---")
+    print(f"\n--- Top Discrepancies (Saved to {output_path}) ---")
     # Group by the statuses to see which mappings are most common
     mismatches_summary = mismatches_df.groupby(['status_csv', 'status_api'], dropna=False).size().reset_index(name='count')
     mismatches_summary = mismatches_summary.sort_values('count', ascending=False)    
@@ -79,6 +70,11 @@ def run_reconciliation_status(sql_file, output_dir=None):
         print(f" CSV: {row['status_csv']} -> API: {row['status_api']} | Count: {row['count']}")
     end_time = time.time()
     print(f"Query Ingestion completed in {end_time - start_time:.2f} seconds ---")
+
+
+
+
+
 
 
 def run_reconciliation_sic(sql_file, output_dir=None):
@@ -145,7 +141,7 @@ def run_reconciliation_sic(sql_file, output_dir=None):
     print(f"Total Matches:             {total_matches} ({ (total_matches/total_processed)*100:.1f}%)")
     print(f"Total Discrepancies:       {total_mismatches} ({ (total_mismatches/total_processed)*100:.1f}%)")
 
-    print(f"\n--- Top Matching Statuses (Saved to {output_file_matches}) ---")
+    print(f"\n--- Top Matching Statuses (Saved to {matches_csv_path}) ---")
     for _, row in matches_summary.head(10).iterrows():
         print(f" SIC CODE: {row['sic_label']} | Count: {row['count']}")
 
@@ -159,6 +155,9 @@ def run_reconciliation_sic(sql_file, output_dir=None):
             print(f" CSV: {row['sic_label']} -> API: {row['sic_api_clean']} | Count: {row['count']}")
     end_time = time.time()
     print(f"Query completed in {end_time - start_time:.2f} seconds ---")
+
+
+
 
 def run_reconciliation_name(sql_file, output_dir=None):
 
@@ -222,7 +221,7 @@ def run_reconciliation_name(sql_file, output_dir=None):
         mismatches_csv_path = os.path.join(OUTPUT_DIR, output_file_mismatches) 
         mismatches_df.to_csv(mismatches_csv_path, sep=';', index=False)    
         
-        print(f"\n--- Discrepancies (Saved to {output_file_mismatches}) ---")
+        print(f"\n--- Discrepancies (Saved to {mismatches_csv_path}) ---")
 
         # Seleccionamos solo las columnas que quieres mostrar
         cols = ['company_number', 'name_csv', 'name_api', 'last_name_change_date']
