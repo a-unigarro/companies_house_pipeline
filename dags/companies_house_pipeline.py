@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 from datetime import datetime, timedelta
 from airflow.decorators import dag, task
+from airflow.operators.python import get_current_context
 
 # Import your existing local classes
 from populate_csv import CSVIngestor
@@ -35,11 +36,11 @@ default_args = {
 
 def companies_house_pipeline():
     DATA_DIR = "data"
-    FILE_DATE = "2026-05-01"   # <--- Corregido para que coincida con tu zip
+    #FILE_DATE = "2026-05-01"  
     CSV_LIMIT = 1
     BASE_DIR = Path('/opt/airflow/pipeline_code')
 
-    # Ahora sí puedes usar el operador / de forma segura
+    
     SQL_ANALYSIS_STATUS = str(BASE_DIR / 'sql' / 'status_comparison.sql')
     SQL_ANALYSIS_SIC = str(BASE_DIR / 'sql' / 'sic_comparison.sql')
     SQL_ANALYSIS_NAME = str(BASE_DIR / 'sql' / 'name_comparison.sql')
@@ -48,6 +49,15 @@ def companies_house_pipeline():
     @task()
     def run_csv_ingestion():
         """Task 1: Download zip and upsert records into companies_csv table"""
+
+        # Access the Airflow task execution context dynamically
+        context = get_current_context()
+        
+        # Extract the start of the scheduled period
+        logical_date = context['logical_date']
+        
+        # Format date to 'YYYY-MM-01' to match the monthly file naming convention
+        FILE_DATE = logical_date.strftime('%Y-%m-01')
 
         print("--- Ingesting CSV via Airflow ---")
         csv_loader = CSVIngestor(data_dir=DATA_DIR, file_date=FILE_DATE, chunk_size=400)
@@ -85,5 +95,5 @@ def companies_house_pipeline():
     api_phase = run_api_enrichment(csv_phase)
     reconciliation_phase = run_reconciliation(api_phase)
 
-# Instantiate the DAG
+
 companies_pipeline_dag = companies_house_pipeline()
